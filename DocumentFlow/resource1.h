@@ -2,10 +2,9 @@
 // Включаемый файл, созданный в Microsoft Visual C++.
 // Используется DocumentFlow.rc
 //
-#define IDI_ICON1                       101
 #define NewDocumentWindow               101
-#define IDC_COMBO1                      1005
-#define IDC_EDIT1                       1007
+#define IDC_FORMATFILE                  1005
+#define IDC_INPUTNAME                   1007
 
 // Next default values for new objects
 // 

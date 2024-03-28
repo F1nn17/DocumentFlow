@@ -1,30 +1,31 @@
 #include "Library.h"
+
+using namespace Spire::Doc;
+using namespace Spire::Pdf;
 using namespace std;
+namespace fs = std::filesystem;
 
 static TCHAR szWindowClass[] = _T("DocFlowApp");
 static TCHAR szTitle[] = _T("Document Flow");
-
+HINSTANCE hInst;
+HWND editDocument;
+using directory_iterator = std::filesystem::directory_iterator;
+std::string path;
+wchar_t fileName[512]{};
+wchar_t fileformat[512]{};
 //window size
 unsigned short widthWnd = 1280;
 unsigned short heightWnd = 720;
 
-HINSTANCE hInst;
-
-HWND editDocument;
-
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
-
-namespace fs = std::filesystem;
-using directory_iterator = std::filesystem::directory_iterator;
-std::string path;
-
 HTREEITEM AddItemtotree(HWND hwndTV, LPWSTR LPSZITEM, HTREEITEM hParent);
 BOOL InitTreeViewItems(HWND HWNDTV);
 HWND CreateATreeView(HWND hwndParent);
 bool dirExists(const std::string& dirName_in);
-void CreateFileM(string filepath);
+void CreateFileM(string filepath, HWND tv_parent);
 void ReadFile(string path);
+void customSplit(string str, char separator);
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPSTR lpCmdLine, _In_ int nCmdShow) {
@@ -45,8 +46,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	wcex.cbClsExtra = 0;
 	wcex.cbWndExtra = 0;
 	wcex.hInstance = hInstance;
-	wcex.hIcon = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_ICON1));
-	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_ICON1));
+	wcex.hIcon = LoadIcon(wcex.hInstance, NULL);
+	wcex.hIconSm = LoadIcon(wcex.hInstance, NULL);
 	wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	wcex.lpszMenuName = NULL;
@@ -166,35 +167,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	PAINTSTRUCT ps;
 	HDC hdc;
 	static HWND tv_parent = NULL;
-	string filepath = path + "\\create.txt";
 	LPNMHDR pHdr = reinterpret_cast<LPNMHDR>(lParam);
 	NMTREEVIEW* pnmtv = (LPNMTREEVIEW)lParam;
 	int dialog{};
+
 	switch (message)
 	{
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
 			case 1010:
-				//CreateFileM(filepath);
-				//TreeView_DeleteAllItems(tv_parent); //очистка дерева
-				//InitTreeViewItems(tv_parent); // инициализация дерева
 				dialog = DialogBox(hInst, MAKEINTRESOURCE(NewDocumentWindow), NULL, (DLGPROC)DialogProc);
-				if (dialog == 0)
-				{
-					//Если была нажата кнопка Отмена или крестик
-					
+				if (dialog == 1) {
+					CreateFileM(path, tv_parent);
 				}
-				else if (dialog == 1)
-				{
-					//Если была нажата кнопка Ок
-					
-				}
-				return dialog;
+				break;
 			case 1002:
-				ReadFile(filepath);
 				break;
 			case 1007:
-				//AddItemtotree(tv_parent, const_cast<LPTSTR>(TEXT("D1")), NULL);
 				break;
 			default:
 				break;
@@ -202,7 +191,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
-		
 		EndPaint(hWnd, &ps);
 		break;
 	case WM_LBUTTONDOWN:
@@ -226,14 +214,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				item.mask = TVIF_TEXT | TVIF_PARAM;
 				item.cchTextMax = 32;
 				item.pszText = buffer;
-
 				TreeView_GetItem(tv_parent, &item);
-				
 				wstring wpathname = wstring(item.pszText);
 				string pathname = string(wpathname.begin(), wpathname.end());
-
 				ReadFile(path+"\\"+pathname);
-				//SetWindowText(editDocument, item.pszText);
 				break;
 		}
 		break;
@@ -245,12 +229,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 }
 
 BOOL CALLBACK DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	HWND hWndComboBox;
+	hWndComboBox = GetDlgItem(hWnd, IDC_FORMATFILE);
 	switch (message)
 	{
 	case WM_COMMAND:
 		switch (LOWORD(wParam))
 		{
 		case IDOK:
+			GetDlgItemText(hWnd, IDC_INPUTNAME, fileName, sizeof(fileName));
+			GetDlgItemText(hWnd, IDC_FORMATFILE, fileformat, sizeof(fileformat));
 			EndDialog(hWnd, 1);
 			return TRUE;
 		case IDCANCEL:
@@ -259,6 +247,10 @@ BOOL CALLBACK DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		}
 		break;
 	case WM_INITDIALOG:
+		SendMessage(hWndComboBox, CB_ADDSTRING, 0, (LPARAM)_T("txt"));
+		SendMessage(hWndComboBox, CB_ADDSTRING, 0, (LPARAM)_T("doc"));
+		SendMessage(hWndComboBox, CB_ADDSTRING, 0, (LPARAM)_T("docx"));
+		SendMessage(hWndComboBox, CB_ADDSTRING, 0, (LPARAM)_T("pdf"));
 		return FALSE;
 		break;
 	case WM_CLOSE:
@@ -269,10 +261,26 @@ BOOL CALLBACK DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	return FALSE;
 }
 
-void CreateFileM(string filepath) {
-	ofstream o(filepath);
+void CreateFileM(string filepath, HWND tv_parent) {
+	wstring wfN(fileName);
+	wstring wfF(fileformat);
+	string fileName = string(wfN.begin(), wfN.end());
+	string fileFormat = string(wfF.begin(), wfF.end());
+	string docpath = path + "\\" + fileName + "." + fileFormat;
+	wstring wpath = wstring(docpath.begin(), docpath.end());
+	if (fileformat == L"pdf") {
+		PdfDocument* docPdf = new PdfDocument();
+		boost::intrusive_ptr<PdfPageBase> page = docPdf->GetPages()->Add();
+		docPdf->SaveToFile(wpath.c_str());
+		docPdf->Dispose();
+		delete docPdf;
+	}
+	else {
+		ofstream o(docpath);
+	}
+	TreeView_DeleteAllItems(tv_parent); //очистка дерева
+	InitTreeViewItems(tv_parent); // инициализация дерева
 }
-
 
 HWND CreateATreeView(HWND hWnd)
 {
@@ -339,20 +347,86 @@ bool dirExists(const std::string& dirName_in)
 	return false;    // this is not a directory!
 }
 
+vector <string> formats;
 void ReadFile(string path) {
-	string line;
-	string result;
-	ifstream in(path); // окрываем файл для чтения
-	if (in.is_open())
-	{
-		while (getline(in, line))
-		{
-			result += line+"\r\n";
-			
+	try {
+		formats.clear();
+		string line;
+		string result;
+		wstring wpath = wstring(path.begin(), path.end());
+		Document* document = NULL;
+		PdfDocument* docPDF = NULL;
+		customSplit(path, '.');
+		if (formats[1] == "docx") {
+			document = new Document();
+			document->LoadFromFile(wpath.c_str());
+			wstring text = document->GetText();
+			SetWindowText(editDocument, text.c_str());
 		}
-		wstring wline = wstring(result.begin(), result.end());
-		LPCWSTR cwline = wline.c_str();
-		SetWindowText(editDocument, cwline);
+		else if (formats[1] == "doc") {
+			document = new Document();
+			document->LoadFromFile(wpath.c_str());
+			wstring text = document->GetText();
+			SetWindowText(editDocument, text.c_str());
+		}
+		else if (formats[1] == "pdf") {
+			/*docPDF = new PdfDocument();
+			docPDF->LoadFromFile(wpath.c_str(), 0);*/
+			//wstring text;
+			/*for (int i = 0; i < docPDF->GetPages()->GetCount(); i++)
+			{
+				boost::intrusive_ptr<PdfPageBase> page = docPDF->GetPages()->GetItem(i);
+				text += (page->ExtractText());
+			}
+			SetWindowText(editDocument, text.c_str());*/
+		}
+		else {
+			ifstream in(path); // окрываем файл для чтения
+			if (in.is_open())
+			{
+				while (getline(in, line))
+				{
+					result += line + "\r\n";
+				}
+				wstring wline = wstring(result.begin(), result.end());
+				LPCWSTR cwline = wline.c_str();
+				SetWindowText(editDocument, cwline);
+			}
+			in.close();     // закрываем файл
+		}
+		if (document != NULL) {
+			document->Close();
+			delete document;
+		}
+		if (docPDF != NULL) {
+			docPDF->Close();
+			delete docPDF;
+		}
 	}
-	in.close();     // закрываем файл
+	catch (exception ex) {
+
+		if (AllocConsole() == TRUE)
+		{
+			WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), ex.what(), strlen(ex.what()), NULL, NULL);
+
+			FreeConsole();
+		}
+
+	}
+}
+
+// Create custom split() function.  
+void customSplit(string str, char separator) {
+	int startIndex = 0, endIndex = 0;
+	for (int i = 0; i <= str.size(); i++) {
+
+		// If we reached the end of the word or the end of the input.
+		if (str[i] == separator || i == str.size()) {
+			endIndex = i;
+			string temp;
+			temp.append(str, startIndex, endIndex - startIndex);
+			formats.push_back(temp);
+			startIndex = endIndex + 1;
+		}
+	}
 }

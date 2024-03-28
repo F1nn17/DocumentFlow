@@ -33,8 +33,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\..\..\Downloads\docicon.ico">
-      <Filter>Файлы ресурсов</Filter>
-    </Image>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
