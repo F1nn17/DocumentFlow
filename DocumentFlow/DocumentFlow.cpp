@@ -13,12 +13,15 @@ using directory_iterator = std::filesystem::directory_iterator;
 std::string path;
 wchar_t fileName[512]{};
 wchar_t fileformat[512]{};
+string sendFile;
+string sendFilePath;
 //window size
 unsigned short widthWnd = 1280;
 unsigned short heightWnd = 720;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
+BOOL CALLBACK DialogSendProc(HWND, UINT, WPARAM, LPARAM);
 HTREEITEM AddItemtotree(HWND hwndTV, LPWSTR LPSZITEM, HTREEITEM hParent);
 BOOL InitTreeViewItems(HWND HWNDTV);
 HWND CreateATreeView(HWND hwndParent);
@@ -97,25 +100,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
 		NULL);      // Pointer not needed.
 
-	HWND openFileB = CreateWindow(
+	HWND addFileB = CreateWindow(
 		L"BUTTON",  // Predefined class; Unicode assumed 
-		L"O",      // Button text 
+		L"A",      // Button text 
 		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // —тиль 
 		42,         // x position (позици€ х)
 		10,         // y position (позици€ у)
-		32,        // Button width (ширина)
-		32,        // Button height (высота)
-		hWnd,     // –одительское окно (главное окно)
-		(HMENU)1002,       //Menu.
-		(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
-		NULL);      // Pointer not needed.
-
-	HWND addDocB = CreateWindow(
-		L"BUTTON",  // Predefined class; Unicode assumed 
-		L"+",      // Button text 
-		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // —тиль 
-		10,         // x position (позици€ х)
-		70,         // y position (позици€ у)
 		32,        // Button width (ширина)
 		32,        // Button height (высота)
 		hWnd,     // –одительское окно (главное окно)
@@ -123,18 +113,19 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
 		NULL);      // Pointer not needed.
 
-	HWND remDocB = CreateWindow(
+	HWND remileB = CreateWindow(
 		L"BUTTON",  // Predefined class; Unicode assumed 
-		L"-",      // Button text 
+		L"R",      // Button text 
 		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // —тиль 
-		42,         // x position (позици€ х)
-		70,         // y position (позици€ у)
+		74,         // x position (позици€ х)
+		10,         // y position (позици€ у)
 		32,        // Button width (ширина)
 		32,        // Button height (высота)
 		hWnd,     // –одительское окно (главное окно)
 		(HMENU)1008,       //Menu.
 		(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
 		NULL);      // Pointer not needed.
+    // Pointer not needed.
 
 	//окно редактировани€
 	//Add edit box for nickname  
@@ -171,6 +162,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	NMTREEVIEW* pnmtv = (LPNMTREEVIEW)lParam;
 	int dialog{};
 
+	wstring wpathname{};
+	string pathname{};
+
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -184,6 +178,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			case 1002:
 				break;
 			case 1007:
+				OPENFILENAME ofn;       // common dialog box structure
+				TCHAR szFile[260];       // buffer for file name
+				HANDLE hf;              // file handle
+
+				// Initialize OPENFILENAME
+				ZeroMemory(&ofn, sizeof(ofn));
+				ofn.lStructSize = sizeof(ofn);
+				ofn.hwndOwner = hWnd;
+				ofn.lpstrFile = szFile;
+				// Set lpstrFile[0] to '\0' so that GetOpenFileName does not 
+				// use the contents of szFile to initialize itself.
+				ofn.lpstrFile[0] = '\0';
+				ofn.nMaxFile = sizeof(szFile);
+				ofn.lpstrFilter = L"Text\0*.TXT\0Word Doc\0*.doc\0Word Docx\0*.docx\0Document pdf\0*.pdf";
+				ofn.nFilterIndex = 1;
+				ofn.lpstrFileTitle = NULL;
+				ofn.nMaxFileTitle = 0;
+				ofn.lpstrInitialDir = wstring(path.begin(), path.end()).c_str();
+				ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+				// Display the Open dialog box. 
+
+				if (GetOpenFileName(&ofn) == TRUE)
+					hf = CreateFile(ofn.lpstrFile,
+						GENERIC_READ,
+						0,
+						(LPSECURITY_ATTRIBUTES)NULL,
+						OPEN_EXISTING,
+						FILE_ATTRIBUTE_NORMAL,
+						(HANDLE)NULL);
 				break;
 			default:
 				break;
@@ -205,9 +229,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_NOTIFY:
 		switch (((LPNMHDR)lParam)->code) {
 			case NM_RCLICK:
-				AddItemtotree(tv_parent, const_cast<LPTSTR>(TEXT("D1")), NULL);
-				break;
-			case NM_DBLCLK:
 				TCHAR buffer[32];
 				TVITEM item;
 				item.hItem = TreeView_GetSelection(tv_parent);
@@ -215,8 +236,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				item.cchTextMax = 32;
 				item.pszText = buffer;
 				TreeView_GetItem(tv_parent, &item);
-				wstring wpathname = wstring(item.pszText);
-				string pathname = string(wpathname.begin(), wpathname.end());
+
+				wpathname = wstring(item.pszText);
+				pathname = string(wpathname.begin(), wpathname.end());
+
+				sendFilePath = path + "\\" + pathname;
+				sendFile = pathname;
+
+				dialog = DialogBox(hInst, MAKEINTRESOURCE(SendDocument), NULL, (DLGPROC)DialogSendProc);
+				if (dialog == 1) {
+					
+				}
+
+				break;
+			case NM_DBLCLK:
+				item.hItem = TreeView_GetSelection(tv_parent);
+				item.mask = TVIF_TEXT | TVIF_PARAM;
+				item.cchTextMax = 32;
+				item.pszText = buffer;
+				TreeView_GetItem(tv_parent, &item);
+				wpathname = wstring(item.pszText);
+				pathname = string(wpathname.begin(), wpathname.end());
 				ReadFile(path+"\\"+pathname);
 				break;
 		}
@@ -261,6 +301,34 @@ BOOL CALLBACK DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	return FALSE;
 }
 
+BOOL CALLBACK DialogSendProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	{
+
+	switch(message) {
+	case WM_INITDIALOG:
+		SetDlgItemText(hWnd, IDC_SENDFILEVIEW, wstring(sendFile.begin(), sendFile.end()).c_str());
+		return FALSE;
+		break;
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case IDSEND:
+			EndDialog(hWnd, 1);
+			return TRUE;
+			break;
+		case IDCANCELSEND:
+			EndDialog(hWnd, 0);
+			return TRUE;
+		}
+		break;
+	case WM_CLOSE:
+		EndDialog(hWnd, 0);
+		return FALSE;
+		}
+	}
+	return FALSE;
+}
+
 void CreateFileM(string filepath, HWND tv_parent) {
 	wstring wfN(fileName);
 	wstring wfF(fileformat);
@@ -290,7 +358,7 @@ HWND CreateATreeView(HWND hWnd)
 		TEXT("Tree View"),
 		WS_VISIBLE | WS_CHILD | WS_BORDER | TVS_HASLINES | TVS_HASBUTTONS | TVS_LINESATROOT,
 		10,
-		105,
+		50,
 		128,
 		256,
 		hWnd,
