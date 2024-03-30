@@ -15,7 +15,7 @@ wchar_t fileName[512]{};
 wchar_t fileformat[512]{};
 string sendFile;
 string sendFilePath;
-//window size
+string removeFile;
 unsigned short widthWnd = 1280;
 unsigned short heightWnd = 720;
 
@@ -33,15 +33,15 @@ void customSplit(string str, char separator);
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPSTR lpCmdLine, _In_ int nCmdShow) {
 
-	// получаем путь
 	path = fs::current_path().string();
 	path += "\\Documents";
+
 	if (!dirExists(path)) {
 		wstring wpath = wstring(path.begin(), path.end());
 		LPCWSTR cwpath = wpath.c_str();
 		CreateDirectory(cwpath, NULL);
 	}
-	//Сведения (параметры) о главном окне
+
 	WNDCLASSEX wcex;
 	wcex.cbSize = sizeof(WNDCLASSEX);
 	wcex.style = CS_HREDRAW | CS_VREDRAW;
@@ -56,7 +56,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	wcex.lpszMenuName = NULL;
 	wcex.lpszClassName = szWindowClass;
 
-	//регистрация окна
 	if (!RegisterClassEx(&wcex)) {
 		MessageBox(NULL,
 			_T("Call to RegisterClassEx failed!"),
@@ -68,11 +67,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	RECT rect = { 0, 0, widthWnd, heightWnd };
 	AdjustWindowRectEx(&rect, WS_OVERLAPPED, false, WS_EX_OVERLAPPEDWINDOW);
 
-	//создаем CreateWindowEX
 	HWND hWnd = CreateWindowEx(
 		WS_EX_OVERLAPPEDWINDOW,
 		szWindowClass, szTitle,
-		WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME /* & ~WS_MAXIMIZEBOX*/,
+		WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		rect.right - rect.left, rect.bottom - rect.top,
@@ -86,49 +84,45 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		return 1;
 	}
 
-	//создаем интерфейс
 	HWND createFileB = CreateWindow(
-		L"BUTTON",  // Predefined class; Unicode assumed 
-		L"С",      // Button text 
-		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Стиль 
-		10,         // x position (позиция х)
-		10,         // y position (позиция у)
-		32,        // Button width (ширина)
-		32,        // Button height (высота)
-		hWnd,     // Родительское окно (главное окно)
-		(HMENU)1010,       //Menu.
+		L"BUTTON",
+		L"С",
+		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+		10,         
+		10,         
+		32,        
+		32,        
+		hWnd,     
+		(HMENU)1010,       
 		(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
-		NULL);      // Pointer not needed.
+		NULL);      
 
 	HWND addFileB = CreateWindow(
-		L"BUTTON",  // Predefined class; Unicode assumed 
-		L"A",      // Button text 
-		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Стиль 
-		42,         // x position (позиция х)
-		10,         // y position (позиция у)
-		32,        // Button width (ширина)
-		32,        // Button height (высота)
-		hWnd,     // Родительское окно (главное окно)
-		(HMENU)1007,       //Menu.
+		L"BUTTON",  
+		L"A",      
+		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  
+		42,         
+		10,         
+		32,        
+		32,        
+		hWnd,     
+		(HMENU)1007,       
 		(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
-		NULL);      // Pointer not needed.
+		NULL);      
 
 	HWND remileB = CreateWindow(
-		L"BUTTON",  // Predefined class; Unicode assumed 
-		L"R",      // Button text 
-		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Стиль 
-		74,         // x position (позиция х)
-		10,         // y position (позиция у)
-		32,        // Button width (ширина)
-		32,        // Button height (высота)
-		hWnd,     // Родительское окно (главное окно)
-		(HMENU)1008,       //Menu.
+		L"BUTTON",  
+		L"R",      
+		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  
+		74,         
+		10,       
+		32,       
+		32,       
+		hWnd,     
+		(HMENU)1008,       
 		(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
-		NULL);      // Pointer not needed.
-    // Pointer not needed.
+		NULL);      
 
-	//окно редактирования
-	//Add edit box for nickname  
 	editDocument = CreateWindow(
 		L"edit",
 		NULL, WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE,
@@ -137,14 +131,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		hWnd, 
 		NULL, NULL, NULL);
 
-
-	//Отображаем окно
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 
-	//Прослушивание сообщенией
 	MSG msg;
-	while (GetMessage(&msg, NULL, 0, 0)) {
+  	while (GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
@@ -154,17 +145,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
-	//Обработка сообщений
 	PAINTSTRUCT ps;
 	HDC hdc;
 	static HWND tv_parent = NULL;
 	LPNMHDR pHdr = reinterpret_cast<LPNMHDR>(lParam);
 	NMTREEVIEW* pnmtv = (LPNMTREEVIEW)lParam;
 	int dialog{};
-
 	wstring wpathname{};
 	string pathname{};
-
+	string fileRemovePath;
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -175,20 +164,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 					CreateFileM(path, tv_parent);
 				}
 				break;
-			case 1002:
+			case 1008:
+				fileRemovePath = path + "\\" + removeFile;
+				fstream(fileRemovePath).clear();
+				fstream(fileRemovePath).close();
+				remove(fileRemovePath.c_str());
+				TreeView_DeleteAllItems(tv_parent);
+				InitTreeViewItems(tv_parent);
 				break;
 			case 1007:
-				OPENFILENAME ofn;       // common dialog box structure
-				TCHAR szFile[260];       // buffer for file name
-				HANDLE hf;              // file handle
+				OPENFILENAME ofn;       
+				TCHAR szFile[260];      
+				HANDLE hf;              
 
-				// Initialize OPENFILENAME
 				ZeroMemory(&ofn, sizeof(ofn));
 				ofn.lStructSize = sizeof(ofn);
 				ofn.hwndOwner = hWnd;
 				ofn.lpstrFile = szFile;
-				// Set lpstrFile[0] to '\0' so that GetOpenFileName does not 
-				// use the contents of szFile to initialize itself.
 				ofn.lpstrFile[0] = '\0';
 				ofn.nMaxFile = sizeof(szFile);
 				ofn.lpstrFilter = L"Text\0*.TXT\0Word Doc\0*.doc\0Word Docx\0*.docx\0Document pdf\0*.pdf";
@@ -196,18 +188,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				ofn.lpstrFileTitle = NULL;
 				ofn.nMaxFileTitle = 0;
 				ofn.lpstrInitialDir = wstring(path.begin(), path.end()).c_str();
-				ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-
-				// Display the Open dialog box. 
-
-				if (GetOpenFileName(&ofn) == TRUE)
-					hf = CreateFile(ofn.lpstrFile,
-						GENERIC_READ,
-						0,
-						(LPSECURITY_ATTRIBUTES)NULL,
-						OPEN_EXISTING,
-						FILE_ATTRIBUTE_NORMAL,
-						(HANDLE)NULL);
+				ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST; 
+				if (GetOpenFileName(&ofn) == TRUE) {
+					try
+					{
+						fs::path sourceFile = ofn.lpstrFile;
+						fs::path targetParent = path;
+						auto target = targetParent / sourceFile.filename();
+						fs::copy_file(sourceFile, target, fs::copy_options::overwrite_existing);
+						TreeView_DeleteAllItems(tv_parent);
+						InitTreeViewItems(tv_parent);
+					}
+					catch (std::exception& e)
+					{
+						std::cout << e.what();
+					}
+				}
 				break;
 			default:
 				break;
@@ -236,18 +232,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				item.cchTextMax = 32;
 				item.pszText = buffer;
 				TreeView_GetItem(tv_parent, &item);
-
 				wpathname = wstring(item.pszText);
 				pathname = string(wpathname.begin(), wpathname.end());
-
 				sendFilePath = path + "\\" + pathname;
 				sendFile = pathname;
-
 				dialog = DialogBox(hInst, MAKEINTRESOURCE(SendDocument), NULL, (DLGPROC)DialogSendProc);
-				if (dialog == 1) {
-					
-				}
-
 				break;
 			case NM_DBLCLK:
 				item.hItem = TreeView_GetSelection(tv_parent);
@@ -258,6 +247,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				wpathname = wstring(item.pszText);
 				pathname = string(wpathname.begin(), wpathname.end());
 				ReadFile(path+"\\"+pathname);
+				break;
+			case NM_CLICK:
+				item.hItem = TreeView_GetSelection(tv_parent);
+				item.mask = TVIF_TEXT;
+				item.cchTextMax = 32;
+				item.pszText = buffer;
+				TreeView_GetItem(tv_parent, &item);
+				wpathname = wstring(item.pszText);
+				removeFile = string(wpathname.begin(), wpathname.end());
 				break;
 		}
 		break;
@@ -346,8 +344,8 @@ void CreateFileM(string filepath, HWND tv_parent) {
 	else {
 		ofstream o(docpath);
 	}
-	TreeView_DeleteAllItems(tv_parent); //очистка дерева
-	InitTreeViewItems(tv_parent); // инициализация дерева
+	TreeView_DeleteAllItems(tv_parent); 
+	InitTreeViewItems(tv_parent); 
 }
 
 HWND CreateATreeView(HWND hWnd)
@@ -370,13 +368,11 @@ HWND CreateATreeView(HWND hWnd)
 
 HTREEITEM AddItemtotree(HWND hwndTV, LPWSTR LPSZITEM,HTREEITEM hParent)
 {
-	TVITEM TVi; // Specify or receive properties of tree
-	TVINSERTSTRUCT TVins; // contains information for adding new projects to tree control. This structure is used for TVM_INSERTITEM messages
+	TVITEM TVi;
+	TVINSERTSTRUCT TVins;
 	HTREEITEM hme;
-	// Setting the parameters of Item
 	TVi.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_DI_SETITEM | TVIF_PARAM;
 	TVi.pszText = LPSZITEM;
-	// Fill the Struct structure
 	TVins.item = TVi;
 	TVins.hInsertAfter = TVI_ROOT;
 	if (hParent == NULL)
@@ -387,12 +383,11 @@ HTREEITEM AddItemtotree(HWND hwndTV, LPWSTR LPSZITEM,HTREEITEM hParent)
 	{
 		TVins.hParent = hParent;
 	}
-	// Call the key TreeView_InsertItem function
 	hme = TreeView_InsertItem(hwndTV, &TVins);
 	return hme;
 }
 
-BOOL InitTreeViewItems(HWND HWNDTV) // Create multiple nodes
+BOOL InitTreeViewItems(HWND HWNDTV)
 {
 	for (const auto& dirEntry : directory_iterator(path)) {
 		wstring name = dirEntry.path().filename().wstring();
@@ -407,12 +402,12 @@ bool dirExists(const std::string& dirName_in)
 {
 	DWORD ftyp = GetFileAttributesA(dirName_in.c_str());
 	if (ftyp == INVALID_FILE_ATTRIBUTES)
-		return false;  //something is wrong with your path!
+		return false; 
 
 	if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
-		return true;   // this is a directory!
+		return true;  
 
-	return false;    // this is not a directory!
+	return false;
 }
 
 vector <string> formats;
@@ -449,7 +444,7 @@ void ReadFile(string path) {
 			SetWindowText(editDocument, text.c_str());*/
 		}
 		else {
-			ifstream in(path); // окрываем файл для чтения
+			ifstream in(path);
 			if (in.is_open())
 			{
 				while (getline(in, line))
@@ -460,7 +455,7 @@ void ReadFile(string path) {
 				LPCWSTR cwline = wline.c_str();
 				SetWindowText(editDocument, cwline);
 			}
-			in.close();     // закрываем файл
+			in.close();
 		}
 		if (document != NULL) {
 			document->Close();
@@ -483,12 +478,9 @@ void ReadFile(string path) {
 	}
 }
 
-// Create custom split() function.  
 void customSplit(string str, char separator) {
 	int startIndex = 0, endIndex = 0;
 	for (int i = 0; i <= str.size(); i++) {
-
-		// If we reached the end of the word or the end of the input.
 		if (str[i] == separator || i == str.size()) {
 			endIndex = i;
 			string temp;

@@ -12,4 +12,5 @@
 #include "resource1.h"
 #include "Spire.Pdf.o.h"
 #include "Spire.Doc.o.h"
+#include <stdio.h>
 
