@@ -1,5 +1,5 @@
 #include "Library.h"
-
+#include <locale>
 //using namespace Spire::Doc;
 //using namespace Spire::Pdf;
 using namespace std;
@@ -503,6 +503,15 @@ void customSplit(string str, char separator) {
 	}
 }
 
+std::wstring GetLineFromEditControl(HWND hwnd) {
+	int textLength = SendMessage(hwnd, WM_GETTEXTLENGTH, 0, 0);
+	wchar_t* buffer = new wchar_t[textLength + 1];
+	SendMessage(hwnd, WM_GETTEXT, textLength + 1, reinterpret_cast<LPARAM>(buffer));
+	std::wstring text(buffer);
+	delete[] buffer;
+	return text;
+}
+
 void SaveFile(HWND hWnd, string spath) {
 	formats.clear();
 	customSplit(spath, '.');
@@ -517,21 +526,12 @@ void SaveFile(HWND hWnd, string spath) {
 
 	}
 	else {
-		ofstream out;
-		out.open(spath, ios::out | ios::binary);
+		wofstream out;
+		out.open(spath, ios::out);
 		if (out.is_open())
 		{
-			for (int i = 0; i < Edit_GetLineCount(editDocument); i++) {
-				int length = Edit_LineLength(editDocument, i);
-				wchar_t* currentText = new wchar_t[length];
-				Edit_GetLine(editDocument, i, currentText, length);
-				wstring wstrLine(currentText);
-				string strLine(wstrLine.begin(), wstrLine.end());
-				strLine.erase(remove(strLine.begin(), strLine.end(), '\n'), strLine.cend());
-				strLine.erase(remove(strLine.begin(), strLine.end(), '\r'), strLine.cend());
-
-				out << strLine;
-			}
+			wstring wstrLine = GetLineFromEditControl(editDocument);
+			out << wstrLine << endl;
 		}
 		out.close();
 		SetWindowText(editDocument, L"Сохранено!");
