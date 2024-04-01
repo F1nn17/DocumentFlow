@@ -503,14 +503,32 @@ void customSplit(string str, char separator) {
 	}
 }
 
-std::wstring GetLineFromEditControl(HWND hwnd) {
+std::wstring GetAllTextFromEditControl(HWND hwnd) {
 	int textLength = SendMessage(hwnd, WM_GETTEXTLENGTH, 0, 0);
 	wchar_t* buffer = new wchar_t[textLength + 1];
-	SendMessage(hwnd, WM_GETTEXT, textLength + 1, reinterpret_cast<LPARAM>(buffer));
-	std::wstring text(buffer);
+	SendMessage(hwnd, WM_GETTEXT, textLength + 1, (LPARAM)buffer);
+	std::wstring result;
+	wchar_t* currentChar = buffer;
+
+	while (*currentChar != '\0') {
+		std::wstring line;
+		while (*currentChar != '\0' && *currentChar != '\r' && *currentChar != '\n') {
+			line += *currentChar;
+			++currentChar;
+		}
+		
+		while (*currentChar == '\r' || *currentChar == '\n') {
+			++currentChar;
+		}
+		
+		if (!line.empty() || (line.empty() && *(currentChar - 1) == '\n')) {
+			result += line + L"\n";
+		}
+	}
 	delete[] buffer;
-	return text;
+	return result;
 }
+
 
 void SaveFile(HWND hWnd, string spath) {
 	formats.clear();
@@ -530,8 +548,8 @@ void SaveFile(HWND hWnd, string spath) {
 		out.open(spath, ios::out);
 		if (out.is_open())
 		{
-			wstring wstrLine = GetLineFromEditControl(editDocument);
-			out << wstrLine << endl;
+			std::wstring text = GetAllTextFromEditControl(editDocument);
+			out << text;	
 		}
 		out.close();
 		SetWindowText(editDocument, L"Сохранено!");
