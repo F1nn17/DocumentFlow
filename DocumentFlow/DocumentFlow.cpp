@@ -1,7 +1,7 @@
 #include "Library.h"
 
-using namespace Spire::Doc;
-using namespace Spire::Pdf;
+//using namespace Spire::Doc;
+//using namespace Spire::Pdf;
 using namespace std;
 namespace fs = std::filesystem;
 
@@ -10,12 +10,13 @@ static TCHAR szTitle[] = _T("Document Flow");
 HINSTANCE hInst;
 HWND editDocument;
 using directory_iterator = std::filesystem::directory_iterator;
-std::string path;
+string path;
 wchar_t fileName[512]{};
 wchar_t fileformat[512]{};
 string sendFile;
 string sendFilePath;
 string removeFile;
+string openCurrentFile;
 unsigned short widthWnd = 1280;
 unsigned short heightWnd = 720;
 
@@ -28,6 +29,7 @@ HWND CreateATreeView(HWND hwndParent);
 bool dirExists(const std::string& dirName_in);
 void CreateFileM(string filepath, HWND tv_parent);
 void ReadFile(string path);
+void SaveFile(HWND hWnd, string path);
 void customSplit(string str, char separator);
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
@@ -67,13 +69,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	RECT rect = { 0, 0, widthWnd, heightWnd };
 	AdjustWindowRectEx(&rect, WS_OVERLAPPED, false, WS_EX_OVERLAPPEDWINDOW);
 
+	HDC DC = GetDC(0);
 	HWND hWnd = CreateWindowEx(
 		WS_EX_OVERLAPPEDWINDOW,
 		szWindowClass, szTitle,
 		WS_OVERLAPPEDWINDOW & ~WS_THICKFRAME,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		rect.right - rect.left, rect.bottom - rect.top,
+		((GetDeviceCaps(DC, HORZRES))- widthWnd)/2,
+		((GetDeviceCaps(DC, VERTRES)) - heightWnd)/2,
+		widthWnd, heightWnd,
 		NULL, NULL, hInstance, 0);
 	if (!hWnd) {
 		MessageBox(NULL,
@@ -110,7 +113,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
 		NULL);      
 
-	HWND remileB = CreateWindow(
+	HWND remFileB = CreateWindow(
 		L"BUTTON",  
 		L"R",      
 		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  
@@ -121,7 +124,20 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		hWnd,     
 		(HMENU)1008,       
 		(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
-		NULL);      
+		NULL);   
+
+	HWND saveFileB = CreateWindow(
+		L"BUTTON",
+		L"S",
+		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+		200,
+		10,
+		32,
+		32,
+		hWnd,
+		(HMENU)1111,
+		(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
+		NULL);
 
 	editDocument = CreateWindow(
 		L"edit",
@@ -176,7 +192,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				OPENFILENAME ofn;       
 				TCHAR szFile[260];      
 				HANDLE hf;              
-
 				ZeroMemory(&ofn, sizeof(ofn));
 				ofn.lStructSize = sizeof(ofn);
 				ofn.hwndOwner = hWnd;
@@ -204,6 +219,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 						std::cout << e.what();
 					}
 				}
+				break;
+			case 1111:
+				SaveFile(hWnd,openCurrentFile);
 				break;
 			default:
 				break;
@@ -246,7 +264,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				TreeView_GetItem(tv_parent, &item);
 				wpathname = wstring(item.pszText);
 				pathname = string(wpathname.begin(), wpathname.end());
-				ReadFile(path+"\\"+pathname);
+				openCurrentFile = path + "\\" + pathname;
+				ReadFile(openCurrentFile);
 				break;
 			case NM_CLICK:
 				item.hItem = TreeView_GetSelection(tv_parent);
@@ -301,7 +320,6 @@ BOOL CALLBACK DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 BOOL CALLBACK DialogSendProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	{
-
 	switch(message) {
 	case WM_INITDIALOG:
 		SetDlgItemText(hWnd, IDC_SENDFILEVIEW, wstring(sendFile.begin(), sendFile.end()).c_str());
@@ -335,11 +353,11 @@ void CreateFileM(string filepath, HWND tv_parent) {
 	string docpath = path + "\\" + fileName + "." + fileFormat;
 	wstring wpath = wstring(docpath.begin(), docpath.end());
 	if (fileformat == L"pdf") {
-		PdfDocument* docPdf = new PdfDocument();
+		/*PdfDocument* docPdf = new PdfDocument();
 		boost::intrusive_ptr<PdfPageBase> page = docPdf->GetPages()->Add();
 		docPdf->SaveToFile(wpath.c_str());
 		docPdf->Dispose();
-		delete docPdf;
+		delete docPdf;*/
 	}
 	else {
 		ofstream o(docpath);
@@ -417,20 +435,20 @@ void ReadFile(string path) {
 		string line;
 		string result;
 		wstring wpath = wstring(path.begin(), path.end());
-		Document* document = NULL;
-		PdfDocument* docPDF = NULL;
+	/*	Document* document = NULL;
+		PdfDocument* docPDF = NULL;*/
 		customSplit(path, '.');
 		if (formats[1] == "docx") {
-			document = new Document();
+			/*document = new Document();
 			document->LoadFromFile(wpath.c_str());
 			wstring text = document->GetText();
-			SetWindowText(editDocument, text.c_str());
+			SetWindowText(editDocument, text.c_str());*/
 		}
 		else if (formats[1] == "doc") {
-			document = new Document();
+			/*document = new Document();
 			document->LoadFromFile(wpath.c_str());
 			wstring text = document->GetText();
-			SetWindowText(editDocument, text.c_str());
+			SetWindowText(editDocument, text.c_str());*/
 		}
 		else if (formats[1] == "pdf") {
 			/*docPDF = new PdfDocument();
@@ -457,24 +475,18 @@ void ReadFile(string path) {
 			}
 			in.close();
 		}
-		if (document != NULL) {
+		/*if (document != NULL) {
 			document->Close();
 			delete document;
-		}
-		if (docPDF != NULL) {
+		}*/
+		/*if (docPDF != NULL) {
 			docPDF->Close();
 			delete docPDF;
-		}
+		}*/
 	}
 	catch (exception ex) {
 
-		if (AllocConsole() == TRUE)
-		{
-			WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), ex.what(), strlen(ex.what()), NULL, NULL);
-
-			FreeConsole();
-		}
-
+		std::cout << ex.what() << endl;
 	}
 }
 
@@ -488,5 +500,40 @@ void customSplit(string str, char separator) {
 			formats.push_back(temp);
 			startIndex = endIndex + 1;
 		}
+	}
+}
+
+void SaveFile(HWND hWnd, string spath) {
+	formats.clear();
+	customSplit(spath, '.');
+	
+	if (formats[1] == "doc") {
+
+	}
+	else if (formats[1] == "docx") {
+
+	}
+	else if (formats[1] == "pdf") {
+
+	}
+	else {
+		ofstream out;
+		out.open(spath, ios::out | ios::binary);
+		if (out.is_open())
+		{
+			for (int i = 0; i < Edit_GetLineCount(editDocument); i++) {
+				int length = Edit_LineLength(editDocument, i);
+				wchar_t* currentText = new wchar_t[length];
+				Edit_GetLine(editDocument, i, currentText, length);
+				wstring wstrLine(currentText);
+				string strLine(wstrLine.begin(), wstrLine.end());
+				strLine.erase(remove(strLine.begin(), strLine.end(), '\n'), strLine.cend());
+				strLine.erase(remove(strLine.begin(), strLine.end(), '\r'), strLine.cend());
+
+				out << strLine;
+			}
+		}
+		out.close();
+		SetWindowText(editDocument, L"Сохранено!");
 	}
 }

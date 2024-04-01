@@ -145,6 +145,9 @@
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\Spire.Doc.Cpp.11.9.0\build\native\Spire.DOC.Cpp.targets" Condition="Exists('..\packages\Spire.Doc.Cpp.11.9.0\build\native\Spire.DOC.Cpp.targets')" />
     <Import Project="..\packages\Spire.PDF.Cpp.9.12.0\build\native\Spire.PDF.Cpp.targets" Condition="Exists('..\packages\Spire.PDF.Cpp.9.12.0\build\native\Spire.PDF.Cpp.targets')" />
+    <Import Project="..\packages\CodePorting.Translator.Cs2Cpp.Framework.24.3.0\build\native\CodePorting.Translator.Cs2Cpp.Framework.targets" Condition="Exists('..\packages\CodePorting.Translator.Cs2Cpp.Framework.24.3.0\build\native\CodePorting.Translator.Cs2Cpp.Framework.targets')" />
+    <Import Project="..\packages\Aspose.PDF.Cpp.24.3.0\build\native\aspose.pdf.cpp.targets" Condition="Exists('..\packages\Aspose.PDF.Cpp.24.3.0\build\native\aspose.pdf.cpp.targets')" />
+    <Import Project="..\packages\Aspose.Words.Cpp.24.3.0\build\native\aspose.words.cpp.targets" Condition="Exists('..\packages\Aspose.Words.Cpp.24.3.0\build\native\aspose.words.cpp.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -152,5 +155,8 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Spire.Doc.Cpp.11.9.0\build\native\Spire.DOC.Cpp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Spire.Doc.Cpp.11.9.0\build\native\Spire.DOC.Cpp.targets'))" />
     <Error Condition="!Exists('..\packages\Spire.PDF.Cpp.9.12.0\build\native\Spire.PDF.Cpp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Spire.PDF.Cpp.9.12.0\build\native\Spire.PDF.Cpp.targets'))" />
+    <Error Condition="!Exists('..\packages\CodePorting.Translator.Cs2Cpp.Framework.24.3.0\build\native\CodePorting.Translator.Cs2Cpp.Framework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CodePorting.Translator.Cs2Cpp.Framework.24.3.0\build\native\CodePorting.Translator.Cs2Cpp.Framework.targets'))" />
+    <Error Condition="!Exists('..\packages\Aspose.PDF.Cpp.24.3.0\build\native\aspose.pdf.cpp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Aspose.PDF.Cpp.24.3.0\build\native\aspose.pdf.cpp.targets'))" />
+    <Error Condition="!Exists('..\packages\Aspose.Words.Cpp.24.3.0\build\native\aspose.words.cpp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Aspose.Words.Cpp.24.3.0\build\native\aspose.words.cpp.targets'))" />
   </Target>
 </Project>
