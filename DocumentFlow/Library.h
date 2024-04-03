@@ -12,6 +12,9 @@
 #include <atlstr.h>
 #include "resource1.h"
 #include <stdio.h>
+#include <Aspose.Words.Cpp/LoadFormat.h>
+#include <Aspose.Words.Cpp/Loading/DocumentDirection.h>
 #include <Aspose.Words.Cpp/DocumentBase.h>
 #include <Aspose.Words.Cpp/Document.h>
 #include <Aspose.Words.Cpp/DocumentBuilder.h>
+#include <Aspose.Words.Cpp/SaveFormat.h>

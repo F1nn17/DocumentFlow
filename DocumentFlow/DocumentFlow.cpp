@@ -3,6 +3,7 @@
 namespace fs = std::filesystem;
 using namespace std;
 using namespace Aspose::Words;
+using namespace System;
 
 static TCHAR szWindowClass[] = _T("DocFlowApp");
 static TCHAR szTitle[] = _T("Document Flow");
@@ -530,38 +531,41 @@ std::wstring GetAllTextFromEditControl(HWND hwnd) {
 
 
 void SaveFile(HWND hWnd, string spath) {
-	formats.clear();
-	customSplit(spath, '.');
-	if (formats[1] == "doc") {
-		//auto docA = makeObject<Document>();
-		//auto builder = MakeObject<DocumentBuilder>(docA);
-
-		// Insert text to the document start.
-		//builder->MoveToDocumentStart();
-		//builder->Write(u"First Hello World paragraph");
-
-		//auto docB = MakeObject<Document>(MyDir + u"Document.docx");
-		// Add document B to the and of document A, preserving document B formatting.
-		//docA->AppendDocument(docB, ImportFormatMode::KeepSourceFormatting);
-
-		//docA->Save(ArtifactsDir + u"HelloWorld.SimpleHelloWorld.pdf");
-	}
-	else if (formats[1] == "docx") {
-
-	}
-	else if (formats[1] == "pdf") {
-
-	}
-	else {
-		wofstream out;
-		out.open(spath, ios::out);
-		if (out.is_open())
-		{
-			std::wstring text = GetAllTextFromEditControl(editDocument);
-			out << text;
+	try{
+		formats.clear();
+		customSplit(spath, '.');
+		wstring wspath = wstring(spath.begin(), spath.end());
+		String Spath = Spath.FromWCS(wspath);
+		if (formats[1] == "doc") {
+			auto doc = MakeObject<Document>(Spath);
+			auto builder = MakeObject<DocumentBuilder>(doc);
+			builder->MoveToDocumentStart();
+			builder->Write(u"Good!");
+			doc->Save(Spath, SaveFormat::Doc);
 		}
-		out.close();
-		SetWindowText(editDocument, L"Сохранено!");
+		else if (formats[1] == "docx") {
+			auto doc = MakeObject<Document>(Spath);
+			auto builder = MakeObject<DocumentBuilder>(doc);
+			builder->MoveToDocumentStart();
+			builder->Write(u"Good!");
+			doc->Save(Spath, SaveFormat::Docx);
+		}
+		else if (formats[1] == "pdf") {
 
+		}
+		else {
+			wofstream out;
+			out.open(spath, ios::out);
+			if (out.is_open())
+			{
+				std::wstring text = GetAllTextFromEditControl(editDocument);
+				out << text;
+			}
+			out.close();
+			SetWindowText(editDocument, L"Сохранено!");
+		}
+	}
+	catch (exception ex) {
+		std::cout << ex.what() << endl;
 	}
 }
