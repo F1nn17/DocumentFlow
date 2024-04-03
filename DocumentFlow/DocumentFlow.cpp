@@ -1,10 +1,9 @@
 #include "Library.h"
 
 namespace fs = std::filesystem;
-using namespace Aspose::Words;
-using namespace System;
 using namespace std;
-using namespace Aspose::Words::Saving;
+using namespace Spire::Doc;
+using namespace Spire::Pdf;
 
 static TCHAR szWindowClass[] = _T("DocFlowApp");
 static TCHAR szTitle[] = _T("Document Flow");
@@ -436,20 +435,20 @@ void ReadFile(string path) {
 		string line;
 		string result;
 		wstring wpath = wstring(path.begin(), path.end());
-	/*	Document* document = NULL;
-		PdfDocument* docPDF = NULL;*/
+		Document* document = NULL;
+		//PdfDocument* docPDF = NULL;
 		customSplit(path, '.');
 		if (formats[1] == "docx") {
-			/*document = new Document();
+			document = new Document();
 			document->LoadFromFile(wpath.c_str());
 			wstring text = document->GetText();
-			SetWindowText(editDocument, text.c_str());*/
+			SetWindowText(editDocument, text.c_str());
 		}
 		else if (formats[1] == "doc") {
-			/*document = new Document();
+			document = new Document();
 			document->LoadFromFile(wpath.c_str());
 			wstring text = document->GetText();
-			SetWindowText(editDocument, text.c_str());*/
+			SetWindowText(editDocument, text.c_str());
 		}
 		else if (formats[1] == "pdf") {
 			/*docPDF = new PdfDocument();
@@ -476,10 +475,10 @@ void ReadFile(string path) {
 			}
 			in.close();
 		}
-		/*if (document != NULL) {
+		if (document != NULL) {
 			document->Close();
 			delete document;
-		}*/
+		}
 		/*if (docPDF != NULL) {
 			docPDF->Close();
 			delete docPDF;
@@ -534,11 +533,8 @@ std::wstring GetAllTextFromEditControl(HWND hwnd) {
 void SaveFile(HWND hWnd, string spath) {
 	formats.clear();
 	customSplit(spath, '.');
-	if (formats[1] == "txt") {
-		auto doc = MakeObject<Document>(spath);
-		auto builder = MakeObject<DocumentBuilder>(doc);
-		builder->Writeln(u"Hello World!");
-		doc->Save(outputPath, SaveFormat::Text);
+	if (formats[1] == "doc") {
+
 	}
 	else if (formats[1] == "docx") {
 
@@ -548,18 +544,14 @@ void SaveFile(HWND hWnd, string spath) {
 	}
 	else {
 		wofstream out;
-		out.open(spath, ios::out | ios::trunc);
+		out.open(spath, ios::out);
 		if (out.is_open())
 		{
-			for (int i = 0; i < Edit_GetLineCount(editDocument); i++) {
-				int length = Edit_LineLength(editDocument, i);
-				wchar_t* currentText = new wchar_t[length];
-				Edit_GetLine(editDocument, i, currentText, length);
-				wstring wstrLine(currentText);
-				out << wstrLine << endl;
-			}
+			std::wstring text = GetAllTextFromEditControl(editDocument);
+			out << text;
 		}
 		out.close();
 		SetWindowText(editDocument, L"Сохранено!");
+
 	}
 }
