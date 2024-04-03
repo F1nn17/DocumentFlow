@@ -11,7 +11,12 @@
 #include <fstream> 
 #include <atlstr.h>
 #include "resource1.h"
-//#include "Spire.Pdf.o.h"
-//#include "Spire.Doc.o.h"
 #include <stdio.h>
-
+#include <Aspose.Words.Cpp/Document.h>
+#include <Aspose.Words.Cpp/DocumentBuilder.h>
+#include <Aspose.Words.Cpp/Saving/TxtSaveOptions.h>
+#include <Aspose.Words.Cpp/Saving/DocSaveOptions.h>
+#include <Aspose.Words.Cpp/Saving/SaveOptions.h>
+#include <Aspose.Words.Cpp/SaveFormat.h>
+#include <Aspose.Words.Cpp/DocumentBase.h>
+#include <Aspose.Words.Cpp/Saving/SaveOutputParameters.h>

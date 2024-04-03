@@ -1,9 +1,10 @@
 #include "Library.h"
 
-//using namespace Spire::Doc;
-//using namespace Spire::Pdf;
-using namespace std;
 namespace fs = std::filesystem;
+using namespace Aspose::Words;
+using namespace System;
+using namespace std;
+using namespace Aspose::Words::Saving;
 
 static TCHAR szWindowClass[] = _T("DocFlowApp");
 static TCHAR szTitle[] = _T("Document Flow");
@@ -506,9 +507,11 @@ void customSplit(string str, char separator) {
 void SaveFile(HWND hWnd, string spath) {
 	formats.clear();
 	customSplit(spath, '.');
-	
-	if (formats[1] == "doc") {
-
+	if (formats[1] == "txt") {
+		auto doc = MakeObject<Document>(spath);
+		auto builder = MakeObject<DocumentBuilder>(doc);
+		builder->Writeln(u"Hello World!");
+		doc->Save(outputPath, SaveFormat::Text);
 	}
 	else if (formats[1] == "docx") {
 
@@ -517,8 +520,8 @@ void SaveFile(HWND hWnd, string spath) {
 
 	}
 	else {
-		ofstream out;
-		out.open(spath, ios::out | ios::binary);
+		wofstream out;
+		out.open(spath, ios::out | ios::trunc);
 		if (out.is_open())
 		{
 			for (int i = 0; i < Edit_GetLineCount(editDocument); i++) {
@@ -526,11 +529,7 @@ void SaveFile(HWND hWnd, string spath) {
 				wchar_t* currentText = new wchar_t[length];
 				Edit_GetLine(editDocument, i, currentText, length);
 				wstring wstrLine(currentText);
-				string strLine(wstrLine.begin(), wstrLine.end());
-				strLine.erase(remove(strLine.begin(), strLine.end(), '\n'), strLine.cend());
-				strLine.erase(remove(strLine.begin(), strLine.end(), '\r'), strLine.cend());
-
-				out << strLine;
+				out << wstrLine << endl;
 			}
 		}
 		out.close();
