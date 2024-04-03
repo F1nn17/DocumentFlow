@@ -91,6 +91,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Aspose.Words.Cpp\lib\x64\Debug\Aspose.Words.Cpp_vc14x64d.lib;CodePorting.Translator.Cs2Cpp.Framework_&lt;version&gt;\lib\codeporting.translator.cs2cpp.framework_vc14x64d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -107,6 +108,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Aspose.Words.Cpp\lib\x64\Release\Aspose.Words.Cpp_vc14x64.lib;CodePorting.Translator.Cs2Cpp.Framework_&lt;version&gt;\lib\codeporting.translator.cs2cpp.framework_vc14x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -117,13 +119,17 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>Aspose.Words.Cpp\include;CodePorting.Translator.Cs2Cpp.Framework_&lt;version&gt;\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Aspose.Words.Cpp\include;CodePorting.Translator.Cs2Cpp.Framework_&lt;version&gt;\include;</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Aspose.Words.Cpp\lib\x64\Debug\Aspose.Words.Cpp_vc14x64d.lib;CodePorting.Translator.Cs2Cpp.Framework_&lt;version&gt;\lib\codeporting.translator.cs2cpp.framework_vc14x64d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /d  "$(ProjectDir)Aspose.Words.Cpp\lib\x64\$(Configuration)\Aspose.Words.Cpp_vc14x64d.dll" "$(OutDir)";xcopy /y /d  "$(ProjectDir)CodePorting.Translator.Cs2Cpp.Framework_&lt;version&gt;\lib\codeporting.translator.cs2cpp.framework_vc14x64d.dll" "$(OutDir)";</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -134,13 +140,18 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <CompileAsManaged>false</CompileAsManaged>
+      <AdditionalIncludeDirectories>Aspose.Words.Cpp\include;CodePorting.Translator.Cs2Cpp.Framework_&lt;version&gt;\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Aspose.Words.Cpp\lib\x64\Release\Aspose.Words.Cpp_vc14x64.lib;CodePorting.Translator.Cs2Cpp.Framework_&lt;version&gt;\lib\codeporting.translator.cs2cpp.framework_vc14x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /d  "$(ProjectDir)Aspose.Words.Cpp\lib\x64\$(Configuration)\Aspose.Words.Cpp_vc14x64.dll" "$(OutDir)";xcopy /y /d  "$(ProjectDir)CodePorting.Translator.Cs2Cpp.Framework_&lt;version&gt;\lib\codeporting.translator.cs2cpp.framework_vc14x64.dll" "$(OutDir)";</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DocumentFlow.cpp" />
@@ -157,14 +168,14 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\Spire.Doc.Cpp.11.9.0\build\native\Spire.DOC.Cpp.targets" Condition="Exists('..\packages\Spire.Doc.Cpp.11.9.0\build\native\Spire.DOC.Cpp.targets')" />
-    <Import Project="..\packages\Spire.PDF.Cpp.9.12.0\build\native\Spire.PDF.Cpp.targets" Condition="Exists('..\packages\Spire.PDF.Cpp.9.12.0\build\native\Spire.PDF.Cpp.targets')" />
+    <Import Project="..\packages\CodePorting.Translator.Cs2Cpp.Framework.24.3.0\build\native\CodePorting.Translator.Cs2Cpp.Framework.targets" Condition="Exists('..\packages\CodePorting.Translator.Cs2Cpp.Framework.24.3.0\build\native\CodePorting.Translator.Cs2Cpp.Framework.targets')" />
+    <Import Project="..\packages\Aspose.Words.Cpp.24.3.0\build\native\aspose.words.cpp.targets" Condition="Exists('..\packages\Aspose.Words.Cpp.24.3.0\build\native\aspose.words.cpp.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>Данный проект ссылается на пакеты NuGet, отсутствующие на этом компьютере. Используйте восстановление пакетов NuGet, чтобы скачать их.  Дополнительную информацию см. по адресу: http://go.microsoft.com/fwlink/?LinkID=322105. Отсутствует следующий файл: {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Spire.Doc.Cpp.11.9.0\build\native\Spire.DOC.Cpp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Spire.Doc.Cpp.11.9.0\build\native\Spire.DOC.Cpp.targets'))" />
-    <Error Condition="!Exists('..\packages\Spire.PDF.Cpp.9.12.0\build\native\Spire.PDF.Cpp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Spire.PDF.Cpp.9.12.0\build\native\Spire.PDF.Cpp.targets'))" />
+    <Error Condition="!Exists('..\packages\CodePorting.Translator.Cs2Cpp.Framework.24.3.0\build\native\CodePorting.Translator.Cs2Cpp.Framework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CodePorting.Translator.Cs2Cpp.Framework.24.3.0\build\native\CodePorting.Translator.Cs2Cpp.Framework.targets'))" />
+    <Error Condition="!Exists('..\packages\Aspose.Words.Cpp.24.3.0\build\native\aspose.words.cpp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Aspose.Words.Cpp.24.3.0\build\native\aspose.words.cpp.targets'))" />
   </Target>
 </Project>

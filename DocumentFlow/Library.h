@@ -12,5 +12,6 @@
 #include <atlstr.h>
 #include "resource1.h"
 #include <stdio.h>
-#include <Spire.Doc.o.h>
-#include <Spire.Pdf.o.h>
+#include <Aspose.Words.Cpp/DocumentBase.h>
+#include <Aspose.Words.Cpp/Document.h>
+#include <Aspose.Words.Cpp/DocumentBuilder.h>

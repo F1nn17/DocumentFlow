@@ -2,8 +2,7 @@
 
 namespace fs = std::filesystem;
 using namespace std;
-using namespace Spire::Doc;
-using namespace Spire::Pdf;
+using namespace Aspose::Words;
 
 static TCHAR szWindowClass[] = _T("DocFlowApp");
 static TCHAR szTitle[] = _T("Document Flow");
@@ -435,20 +434,20 @@ void ReadFile(string path) {
 		string line;
 		string result;
 		wstring wpath = wstring(path.begin(), path.end());
-		Document* document = NULL;
+		//Document* document = NULL;
 		//PdfDocument* docPDF = NULL;
 		customSplit(path, '.');
 		if (formats[1] == "docx") {
-			document = new Document();
+			/*document = new Document();
 			document->LoadFromFile(wpath.c_str());
 			wstring text = document->GetText();
-			SetWindowText(editDocument, text.c_str());
+			SetWindowText(editDocument, text.c_str());*/
 		}
 		else if (formats[1] == "doc") {
-			document = new Document();
+			/*document = new Document();
 			document->LoadFromFile(wpath.c_str());
 			wstring text = document->GetText();
-			SetWindowText(editDocument, text.c_str());
+			SetWindowText(editDocument, text.c_str());*/
 		}
 		else if (formats[1] == "pdf") {
 			/*docPDF = new PdfDocument();
@@ -475,10 +474,10 @@ void ReadFile(string path) {
 			}
 			in.close();
 		}
-		if (document != NULL) {
+		/*if (document != NULL) {
 			document->Close();
 			delete document;
-		}
+		}*/
 		/*if (docPDF != NULL) {
 			docPDF->Close();
 			delete docPDF;
@@ -534,7 +533,18 @@ void SaveFile(HWND hWnd, string spath) {
 	formats.clear();
 	customSplit(spath, '.');
 	if (formats[1] == "doc") {
+		//auto docA = makeObject<Document>();
+		//auto builder = MakeObject<DocumentBuilder>(docA);
 
+		// Insert text to the document start.
+		//builder->MoveToDocumentStart();
+		//builder->Write(u"First Hello World paragraph");
+
+		//auto docB = MakeObject<Document>(MyDir + u"Document.docx");
+		// Add document B to the and of document A, preserving document B formatting.
+		//docA->AppendDocument(docB, ImportFormatMode::KeepSourceFormatting);
+
+		//docA->Save(ArtifactsDir + u"HelloWorld.SimpleHelloWorld.pdf");
 	}
 	else if (formats[1] == "docx") {
 
