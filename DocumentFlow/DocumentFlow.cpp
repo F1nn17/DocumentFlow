@@ -504,6 +504,33 @@ void customSplit(string str, char separator) {
 	}
 }
 
+std::wstring GetAllTextFromEditControl(HWND hwnd) {
+	int textLength = SendMessage(hwnd, WM_GETTEXTLENGTH, 0, 0);
+	wchar_t* buffer = new wchar_t[textLength + 1];
+	SendMessage(hwnd, WM_GETTEXT, textLength + 1, (LPARAM)buffer);
+	std::wstring result;
+	wchar_t* currentChar = buffer;
+
+	while (*currentChar != '\0') {
+		std::wstring line;
+		while (*currentChar != '\0' && *currentChar != '\r' && *currentChar != '\n') {
+			line += *currentChar;
+			++currentChar;
+		}
+		
+		while (*currentChar == '\r' || *currentChar == '\n') {
+			++currentChar;
+		}
+		
+		if (!line.empty() || (line.empty() && *(currentChar - 1) == '\n')) {
+			result += line + L"\n";
+		}
+	}
+	delete[] buffer;
+	return result;
+}
+
+
 void SaveFile(HWND hWnd, string spath) {
 	formats.clear();
 	customSplit(spath, '.');
