@@ -18,3 +18,7 @@
 #include <Aspose.Words.Cpp/Document.h>
 #include <Aspose.Words.Cpp/DocumentBuilder.h>
 #include <Aspose.Words.Cpp/SaveFormat.h>
+#include <shellapi.h>
+#include <Aspose.PDF.Cpp/SaveFormat.h>
+#include <Aspose.PDF.Cpp/Document.h>
+#include <Aspose.PDF.Cpp/DocumentFactory.h>

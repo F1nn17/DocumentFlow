@@ -178,6 +178,7 @@
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\CodePorting.Translator.Cs2Cpp.Framework.24.3.0\build\native\CodePorting.Translator.Cs2Cpp.Framework.targets" Condition="Exists('..\packages\CodePorting.Translator.Cs2Cpp.Framework.24.3.0\build\native\CodePorting.Translator.Cs2Cpp.Framework.targets')" />
     <Import Project="..\packages\Aspose.Words.Cpp.24.3.0\build\native\aspose.words.cpp.targets" Condition="Exists('..\packages\Aspose.Words.Cpp.24.3.0\build\native\aspose.words.cpp.targets')" />
+    <Import Project="..\packages\Aspose.PDF.Cpp.24.3.0\build\native\aspose.pdf.cpp.targets" Condition="Exists('..\packages\Aspose.PDF.Cpp.24.3.0\build\native\aspose.pdf.cpp.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -185,5 +186,6 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\CodePorting.Translator.Cs2Cpp.Framework.24.3.0\build\native\CodePorting.Translator.Cs2Cpp.Framework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CodePorting.Translator.Cs2Cpp.Framework.24.3.0\build\native\CodePorting.Translator.Cs2Cpp.Framework.targets'))" />
     <Error Condition="!Exists('..\packages\Aspose.Words.Cpp.24.3.0\build\native\aspose.words.cpp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Aspose.Words.Cpp.24.3.0\build\native\aspose.words.cpp.targets'))" />
+    <Error Condition="!Exists('..\packages\Aspose.PDF.Cpp.24.3.0\build\native\aspose.pdf.cpp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Aspose.PDF.Cpp.24.3.0\build\native\aspose.pdf.cpp.targets'))" />
   </Target>
 </Project>

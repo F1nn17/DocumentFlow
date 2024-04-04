@@ -9,6 +9,7 @@ static TCHAR szWindowClass[] = _T("DocFlowApp");
 static TCHAR szTitle[] = _T("Document Flow");
 HINSTANCE hInst;
 HWND editDocument;
+HWND labelMessage;
 using directory_iterator = std::filesystem::directory_iterator;
 string path;
 wchar_t fileName[512]{};
@@ -138,6 +139,18 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		(HMENU)1111,
 		(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
 		NULL);
+	HWND ClearEditBoxB = CreateWindow(
+		L"BUTTON",
+		L"AC",
+		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+		868,
+		10,
+		32,
+		32,
+		hWnd,
+		(HMENU)1112,
+		(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
+		NULL);
 
 	editDocument = CreateWindow(
 		L"edit",
@@ -146,6 +159,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		700, 600,
 		hWnd, 
 		NULL, NULL, NULL);
+
+	labelMessage = CreateWindow(L"STATIC",
+		NULL, 
+		WS_CHILD | WS_VISIBLE | WS_BORDER,
+		250, 10, 200, 32, 
+		hWnd, (HMENU)900, hInstance, NULL);
 
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
@@ -168,6 +187,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	NMTREEVIEW* pnmtv = (LPNMTREEVIEW)lParam;
 	int dialog{};
 	wstring wpathname{};
+	wstring viewName{};
 	string pathname{};
 	string fileRemovePath;
 	switch (message)
@@ -198,7 +218,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				ofn.lpstrFile = szFile;
 				ofn.lpstrFile[0] = '\0';
 				ofn.nMaxFile = sizeof(szFile);
-				ofn.lpstrFilter = L"Text\0*.TXT\0Word Doc\0*.doc\0Word Docx\0*.docx\0Document pdf\0*.pdf";
+				ofn.lpstrFilter = L"Text\0*.TXT\0Word Doc\0*.doc\0Word Docx\0*.docx";
 				ofn.nFilterIndex = 1;
 				ofn.lpstrFileTitle = NULL;
 				ofn.nMaxFileTitle = 0;
@@ -221,7 +241,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				}
 				break;
 			case 1111:
-				SaveFile(hWnd,openCurrentFile);
+				if(openCurrentFile != "") SaveFile(hWnd,openCurrentFile);
+				else SetWindowText(labelMessage, L"Файл не выбран");
+				break;
+			case 1112:
+				SetWindowText(editDocument, L"");
 				break;
 			default:
 				break;
@@ -265,6 +289,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				wpathname = wstring(item.pszText);
 				pathname = string(wpathname.begin(), wpathname.end());
 				openCurrentFile = path + "\\" + pathname;
+				viewName = L"Файл: " + wpathname;
+				SetWindowText(labelMessage, viewName.c_str());
 				ReadFile(openCurrentFile);
 				break;
 			case NM_CLICK:
@@ -274,6 +300,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				item.pszText = buffer;
 				TreeView_GetItem(tv_parent, &item);
 				wpathname = wstring(item.pszText);
+				viewName = L"Файл: " + wpathname;
 				removeFile = string(wpathname.begin(), wpathname.end());
 				break;
 		}
@@ -307,7 +334,6 @@ BOOL CALLBACK DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		SendMessage(hWndComboBox, CB_ADDSTRING, 0, (LPARAM)_T("txt"));
 		SendMessage(hWndComboBox, CB_ADDSTRING, 0, (LPARAM)_T("doc"));
 		SendMessage(hWndComboBox, CB_ADDSTRING, 0, (LPARAM)_T("docx"));
-		SendMessage(hWndComboBox, CB_ADDSTRING, 0, (LPARAM)_T("pdf"));
 		return FALSE;
 		break;
 	case WM_CLOSE:
@@ -318,29 +344,61 @@ BOOL CALLBACK DialogProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	return FALSE;
 }
 
-BOOL CALLBACK DialogSendProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	{
-	switch(message) {
-	case WM_INITDIALOG:
-		SetDlgItemText(hWnd, IDC_SENDFILEVIEW, wstring(sendFile.begin(), sendFile.end()).c_str());
-		return FALSE;
-		break;
-	case WM_COMMAND:
-		switch (LOWORD(wParam))
-		{
-		case IDSEND:
-			EndDialog(hWnd, 1);
-			return TRUE;
+BOOL CALLBACK DialogSendProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	wstring currentSignature;
+	switch (message) {
+		case WM_INITDIALOG:
+			SetDlgItemText(hWnd, IDC_SENDFILEVIEW, wstring(sendFile.begin(), sendFile.end()).c_str());
+			return FALSE;
 			break;
-		case IDCANCELSEND:
+		case WM_COMMAND:
+			switch (LOWORD(wParam))
+			{
+			case 1019:
+				OPENFILENAME ofn;
+				TCHAR szFile[260];
+				HANDLE hf;
+				ZeroMemory(&ofn, sizeof(ofn));
+				ofn.lStructSize = sizeof(ofn);
+				ofn.hwndOwner = hWnd;
+				ofn.lpstrFile = szFile;
+				ofn.lpstrFile[0] = '\0';
+				ofn.nMaxFile = sizeof(szFile);
+				ofn.lpstrFilter = L"sig\0*.sig\0sgn\0*.sgn\0p7s\0*.p7s";
+				ofn.nFilterIndex = 1;
+				ofn.lpstrFileTitle = NULL;
+				ofn.nMaxFileTitle = 0;
+				ofn.lpstrInitialDir = wstring(path.begin(), path.end()).c_str();
+				ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+				if (GetOpenFileName(&ofn) == TRUE) {
+					try
+					{
+						fs::path sourceFile = ofn.lpstrFile;
+						fs::path targetParent = path;
+						auto target = targetParent / sourceFile.filename();
+						currentSignature = sourceFile.filename();
+						fs::copy_file(sourceFile, target, fs::copy_options::overwrite_existing);
+					}
+					catch (std::exception& e)
+					{
+						std::cout << e.what();
+					}
+				}
+				SetDlgItemText(hWnd, IDC_SENDSIGN, currentSignature.c_str());
+				break;
+			case IDSEND:
+				EndDialog(hWnd, 1);
+				return TRUE;
+				break;
+			case IDCANCELSEND:
+				EndDialog(hWnd, 0);
+				return TRUE;
+			}
+			break;
+		case WM_CLOSE:
 			EndDialog(hWnd, 0);
-			return TRUE;
-		}
-		break;
-	case WM_CLOSE:
-		EndDialog(hWnd, 0);
-		return FALSE;
-		}
+			return FALSE;
 	}
 	return FALSE;
 }
@@ -352,16 +410,7 @@ void CreateFileM(string filepath, HWND tv_parent) {
 	string fileFormat = string(wfF.begin(), wfF.end());
 	string docpath = path + "\\" + fileName + "." + fileFormat;
 	wstring wpath = wstring(docpath.begin(), docpath.end());
-	if (fileformat == L"pdf") {
-		/*PdfDocument* docPdf = new PdfDocument();
-		boost::intrusive_ptr<PdfPageBase> page = docPdf->GetPages()->Add();
-		docPdf->SaveToFile(wpath.c_str());
-		docPdf->Dispose();
-		delete docPdf;*/
-	}
-	else {
-		ofstream o(docpath);
-	}
+	ofstream o(docpath);
 	TreeView_DeleteAllItems(tv_parent); 
 	InitTreeViewItems(tv_parent); 
 }
@@ -429,40 +478,30 @@ bool dirExists(const std::string& dirName_in)
 }
 
 vector <string> formats;
-void ReadFile(string path) {
+void ReadFile(string rpath) {
 	try {
 		formats.clear();
 		string line;
 		string result;
-		wstring wpath = wstring(path.begin(), path.end());
-		//Document* document = NULL;
-		//PdfDocument* docPDF = NULL;
-		customSplit(path, '.');
+		wstring wpath = wstring(rpath.begin(), rpath.end());
+		String Spath = Spath.FromWCS(wpath);
+		customSplit(rpath, '.');
 		if (formats[1] == "docx") {
-			/*document = new Document();
-			document->LoadFromFile(wpath.c_str());
-			wstring text = document->GetText();
-			SetWindowText(editDocument, text.c_str());*/
+			auto doc = MakeObject<Document>(Spath);
+			auto builder = MakeObject<DocumentBuilder>(doc);
+			String text = doc->ToString(SaveFormat::Text);
+			wstring wtext = wstring(text.begin(), text.end());
+			SetWindowText(editDocument, wtext.c_str());
 		}
 		else if (formats[1] == "doc") {
-			/*document = new Document();
-			document->LoadFromFile(wpath.c_str());
-			wstring text = document->GetText();
-			SetWindowText(editDocument, text.c_str());*/
-		}
-		else if (formats[1] == "pdf") {
-			/*docPDF = new PdfDocument();
-			docPDF->LoadFromFile(wpath.c_str(), 0);*/
-			//wstring text;
-			/*for (int i = 0; i < docPDF->GetPages()->GetCount(); i++)
-			{
-				boost::intrusive_ptr<PdfPageBase> page = docPDF->GetPages()->GetItem(i);
-				text += (page->ExtractText());
-			}
-			SetWindowText(editDocument, text.c_str());*/
+			auto doc = MakeObject<Document>(Spath);
+			auto builder = MakeObject<DocumentBuilder>(doc);
+			String text = doc->ToString(SaveFormat::Text);
+			wstring wtext = wstring(text.begin(), text.end());
+			SetWindowText(editDocument, wtext.c_str());
 		}
 		else {
-			ifstream in(path);
+			ifstream in(rpath);
 			if (in.is_open())
 			{
 				while (getline(in, line))
@@ -475,14 +514,6 @@ void ReadFile(string path) {
 			}
 			in.close();
 		}
-		/*if (document != NULL) {
-			document->Close();
-			delete document;
-		}*/
-		/*if (docPDF != NULL) {
-			docPDF->Close();
-			delete docPDF;
-		}*/
 	}
 	catch (exception ex) {
 
@@ -529,36 +560,36 @@ std::wstring GetAllTextFromEditControl(HWND hwnd) {
 	return result;
 }
 
-
 void SaveFile(HWND hWnd, string spath) {
 	try{
 		formats.clear();
 		customSplit(spath, '.');
 		wstring wspath = wstring(spath.begin(), spath.end());
 		String Spath = Spath.FromWCS(wspath);
+		std::wstring text = GetAllTextFromEditControl(editDocument);
 		if (formats[1] == "doc") {
-			auto doc = MakeObject<Document>(Spath);
+			auto doc = MakeObject<Document>();
 			auto builder = MakeObject<DocumentBuilder>(doc);
 			builder->MoveToDocumentStart();
-			builder->Write(u"Good!");
+			String writeText = writeText.FromWCS(text);
+			builder->Write(writeText);
 			doc->Save(Spath, SaveFormat::Doc);
+			SetWindowText(editDocument, L"Сохранено!");
 		}
 		else if (formats[1] == "docx") {
-			auto doc = MakeObject<Document>(Spath);
+			auto doc = MakeObject<Document>();
 			auto builder = MakeObject<DocumentBuilder>(doc);
 			builder->MoveToDocumentStart();
-			builder->Write(u"Good!");
+			String writeText = writeText.FromWCS(text);
+			builder->Write(writeText);
 			doc->Save(Spath, SaveFormat::Docx);
-		}
-		else if (formats[1] == "pdf") {
-
+			SetWindowText(editDocument, L"Сохранено!");
 		}
 		else {
 			wofstream out;
 			out.open(spath, ios::out);
 			if (out.is_open())
 			{
-				std::wstring text = GetAllTextFromEditControl(editDocument);
 				out << text;
 			}
 			out.close();
